@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Permit Mastery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-hover": "#1d6bf5",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#1a1d24",
+                        "surface-dark-lighter": "#232f48",
+                        "card-dark": "#1e293b",
+                        "border-dark": "#324467",
+                        "text-secondary": "#92a4c9",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .icon-fill {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #101622;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #324467;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475e85;
+        }
+
+        /* Estilos para Markdown en el Chat */
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 12px 0;
+            font-size: 11px;
+        }
+
+        .markdown-content th,
+        .markdown-content td {
+            border: 1px solid #324467;
+            padding: 6px 8px;
+            text-align: left;
+        }
+
+        .markdown-content th {
+            background-color: rgba(19, 91, 236, 0.1);
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .markdown-content p {
+            margin-bottom: 8px;
+        }
+
+        .markdown-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .markdown-content ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin: 8px 0;
+        }
+    </style>
+    <link rel="stylesheet" href="/index.css">
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>

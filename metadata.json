@@ -1,0 +1,7 @@
+{
+  "name": "Permit Mastery - Mining Management Platform",
+  "description": "An integrated mining management platform for handling permits, commitments, ESG compliance, and social license, featuring an AI-powered regulatory assistant.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
