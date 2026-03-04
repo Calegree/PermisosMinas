@@ -139,24 +139,25 @@ const Permissions: React.FC = () => {
 
       const mapField = (apiField: string, stateField: keyof typeof newPermit) => {
         if (data[apiField]) {
-          if (typeof data[apiField].value === 'boolean' && typeof newFormValues[stateField] === 'boolean') {
-            (newFormValues[stateField] as boolean) = data[apiField].value;
-          } else {
-            (newFormValues[stateField] as any) = data[apiField].value;
+          let val = data[apiField].value;
+          if (stateField === 'vigenciaAcotada') {
+            val = val === true || val === 'true' || val === 'Verdadero' || val === 'True';
           }
+          (newFormValues[stateField] as any) = val;
           newInferred[stateField] = data[apiField].is_inferred;
         }
       };
 
       mapField('nombre_permiso', 'name');
-      mapField('referencia', 'ref');
-      mapField('autoridad', 'authority');
+      mapField('referencia_legal', 'ref');
+      mapField('autoridad_competente', 'authority');
       mapField('gerencia_responsable', 'gerencia');
       mapField('responsable', 'responsible');
-      mapField('fecha_vencimiento', 'deadline');
-      mapField('estado', 'status');
-      mapField('tipo', 'tipo');
-      mapField('empresa_contratista', 'contractor');
+      mapField('vencimiento', 'deadline');
+      mapField('estado_gestion', 'status');
+      mapField('tipo_permiso', 'tipo');
+      mapField('contratista_sugerido', 'contractor');
+      mapField('periodo', 'period');
       mapField('vigencia_acotada', 'vigenciaAcotada');
 
       setNewPermit(newFormValues);
@@ -844,9 +845,9 @@ const Permissions: React.FC = () => {
                   <button
                     onClick={() => setNewPermit({ ...newPermit, vigenciaAcotada: !newPermit.vigenciaAcotada })}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all text-[10px] font-black uppercase tracking-widest ${inferredFields['vigenciaAcotada'] ? 'border-amber-400 bg-amber-500/10 text-amber-500 shadow-[0_0_8px_rgba(251,191,36,0.3)]' :
-                        newPermit.vigenciaAcotada
-                          ? 'bg-primary/20 border-primary text-primary'
-                          : 'bg-transparent border-[#334155] text-slate-500'
+                      newPermit.vigenciaAcotada
+                        ? 'bg-primary/20 border-primary text-primary'
+                        : 'bg-transparent border-[#334155] text-slate-500'
                       }`}
                   >
                     <span className="material-symbols-outlined text-sm">
