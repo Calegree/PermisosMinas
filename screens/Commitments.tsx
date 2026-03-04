@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, LabelList } from 'recharts';
 import { Commitment } from '../types';
+import { uploadCommitmentDocument } from '../services/apiAgent';
 
 const COLORS_STATUS = {
   'Validado': '#10b981',
@@ -75,6 +76,70 @@ const Commitments: React.FC = () => {
     gerencia: 'Mina',
     periodo: '2024'
   });
+
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [inferredFields, setInferredFields] = useState<Record<string, boolean>>({});
+
+  const handleAutoFill = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsLoadingAI(true);
+    setInferredFields({});
+
+    try {
+      const data = await uploadCommitmentDocument(file);
+
+      const newFormValues = { ...newCommitment };
+      const newInferred: Record<string, boolean> = {};
+
+      const mapField = (apiField: string, stateField: keyof typeof newCommitment) => {
+        if (data[apiField]) {
+          let val = data[apiField].value;
+          if (stateField === 'vigenciaAcotada') {
+            val = val === true || val === 'true' || val === 'Verdadero' || val === 'True' || val === 'true';
+          }
+          (newFormValues[stateField] as any) = val;
+          newInferred[stateField] = data[apiField].is_inferred;
+        }
+      };
+
+      mapField('id_compromiso', 'id');
+      mapField('descripcion_compromiso', 'description');
+      mapField('origen_fuente', 'source');
+      mapField('tipo_compromiso', 'tipo');
+      mapField('gerencia_responsable', 'gerencia');
+      mapField('area_instalacion', 'area');
+      mapField('empresa_contratista', 'contratista');
+      mapField('responsable', 'responsible');
+      mapField('estado_inicial', 'status');
+      mapField('autoridad_fiscalizadora', 'autoridad');
+      mapField('vigencia_acotada', 'vigenciaAcotada');
+      mapField('fecha_vencimiento', 'deadline');
+
+      setNewCommitment(newFormValues);
+      setInferredFields(newInferred);
+
+    } catch (error) {
+      alert("Error al procesar el documento con IA.");
+    } finally {
+      setIsLoadingAI(false);
+      event.target.value = '';
+    }
+  };
+
+  const getInputClass = (fieldName: string, isTextArea = false) => {
+    const baseClass = `w-full bg-background-dark border rounded-lg px-4 py-2.5 text-sm text-white outline-none transition-all ${isTextArea ? 'min-h-[100px]' : ''} `;
+    if (inferredFields[fieldName]) {
+      return baseClass + "border-amber-400 focus:ring-primary shadow-[0_0_8px_rgba(251,191,36,0.3)] text-amber-50";
+    }
+    return baseClass + "border-border-dark focus:border-primary";
+  };
+
+  const AIHint = ({ field }: { field: string }) => {
+    if (!inferredFields[field]) return null;
+    return <span className="text-amber-500 text-[10px] font-bold mt-1 flex items-center gap-1">✨ Sugerencia de la IA</span>;
+  };
 
   const gerencias = ['Todas', 'Mina', 'Planta de Procesos', 'Servicios Generales'];
   const periodos = ['Todos', '2024', '2025', '2026'];
@@ -225,6 +290,7 @@ const Commitments: React.FC = () => {
       gerencia: 'Mina',
       periodo: '2024'
     });
+    setInferredFields({});
   };
 
   return (
@@ -522,59 +588,90 @@ const Commitments: React.FC = () => {
                 <span className="material-symbols-outlined text-primary">add_circle</span>
                 {t('commitments.modal_title')}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-text-secondary hover:text-white transition-colors">
+              <button type="button" onClick={() => setIsModalOpen(false)} className="text-text-secondary hover:text-white transition-colors">
                 <span className="material-symbols-outlined">{t('common.cancel')}</span>
               </button>
             </div>
-            <form onSubmit={handleSaveCommitment} className="p-8 space-y-6">
+            <div className="p-8 pb-4">
+              <div className="flex items-center gap-4 bg-primary/10 p-4 rounded-xl border border-primary/20">
+                <div className="flex-1">
+                  <h4 className="text-white text-sm font-bold flex items-center gap-2">
+                    <span className="text-amber-400">✨</span> Asistente IA
+                  </h4>
+                  <p className="text-[#94a3b8] text-xs mt-1">Sube una RCA, EIA o Resolución para extraer los compromisos automáticamente.</p>
+                </div>
+                <div>
+                  <input
+                    type="file" id="ai-upload-commitment" className="hidden" accept=".pdf,.doc,.docx"
+                    onChange={handleAutoFill} disabled={isLoadingAI}
+                  />
+                  <label
+                    htmlFor="ai-upload-commitment"
+                    className={`cursor-pointer px-4 py-2.5 rounded-lg font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 border ${isLoadingAI ? 'bg-background-dark text-slate-400 border-border-dark' : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border-amber-500/30 shadow-lg shadow-amber-500/10'} `}
+                  >
+                    {isLoadingAI ? (
+                      <><span className="material-symbols-outlined animate-spin text-sm">sync</span>Analizando...</>
+                    ) : (
+                      <><span className="material-symbols-outlined text-sm">auto_awesome</span>Auto-completar</>
+                    )}
+                  </label>
+                </div>
+              </div>
+            </div>
+            <form onSubmit={handleSaveCommitment} className="p-8 pt-4 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                 {/* ID y Responsable */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_id')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['id'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_id')}</label>
                   <input
                     type="text" required value={newCommitment.id}
                     onChange={e => setNewCommitment({ ...newCommitment, id: e.target.value })}
                     placeholder="Ej: RCA-123"
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('id')}
                   />
+                  <AIHint field="id" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.table_responsible')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['responsible'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.table_responsible')}</label>
                   <input
                     type="text" value={newCommitment.responsible}
                     onChange={e => setNewCommitment({ ...newCommitment, responsible: e.target.value })}
                     placeholder={i18n.language === 'en' ? "Manager Name" : "Nombre del encargado"}
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('responsible')}
                   />
+                  <AIHint field="responsible" />
                 </div>
 
                 {/* Descripción (Full width) */}
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_desc')}</label>
+                <div className="md:col-span-2 space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['description'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_desc')}</label>
                   <textarea
                     required value={newCommitment.description}
                     onChange={e => setNewCommitment({ ...newCommitment, description: e.target.value })}
                     placeholder={i18n.language === 'en' ? "Detail the regulatory obligation..." : "Detalle la obligación normativa..."}
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none min-h-[100px]"
+                    className={getInputClass('description', true)}
                   />
+                  <AIHint field="description" />
                 </div>
 
                 {/* Origen y Tipo */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_source')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['source'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_source')}</label>
                   <input
                     type="text" value={newCommitment.source}
                     onChange={e => setNewCommitment({ ...newCommitment, source: e.target.value })}
                     placeholder="Ej: RCA 254/2018"
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('source')}
                   />
+                  <AIHint field="source" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_type')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['tipo'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_type')}</label>
                   <select
                     value={newCommitment.tipo}
                     onChange={e => setNewCommitment({ ...newCommitment, tipo: e.target.value })}
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('tipo')}
                   >
                     {[
                       t('common.type_ambient'),
@@ -590,89 +687,100 @@ const Commitments: React.FC = () => {
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </select>
+                  <AIHint field="tipo" />
                 </div>
 
                 {/* Gerencia y Periodo */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_management')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['gerencia'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_management')}</label>
                   <select
                     value={newCommitment.gerencia}
                     onChange={e => setNewCommitment({ ...newCommitment, gerencia: e.target.value })}
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('gerencia')}
                   >
                     <option value="Mina">{t('dashboard.gerencias.Mina')}</option>
                     <option value="Planta de Procesos">{t('dashboard.gerencias.Planta de Procesos')}</option>
                     <option value="Servicios Generales">{t('dashboard.gerencias.Servicios Generales')}</option>
                   </select>
+                  <AIHint field="gerencia" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_period')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['periodo'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_period')}</label>
                   <select
                     value={newCommitment.periodo}
                     onChange={e => setNewCommitment({ ...newCommitment, periodo: e.target.value })}
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('periodo')}
                   >
                     {['2023', '2024', '2025', '2026', '2027'].map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
+                  <AIHint field="periodo" />
                 </div>
 
                 {/* Vencimiento y Estado */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_deadline')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['deadline'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_deadline')}</label>
                   <input
                     type="text" value={newCommitment.deadline}
                     onChange={e => setNewCommitment({ ...newCommitment, deadline: e.target.value })}
                     placeholder={i18n.language === 'en' ? "e.g., 15 Oct 2024" : "Ej: 15 Oct 2024"}
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('deadline')}
                   />
+                  <AIHint field="deadline" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_status')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['status'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_status')}</label>
                   <select
                     value={newCommitment.status}
                     onChange={e => setNewCommitment({ ...newCommitment, status: e.target.value as any })}
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('status')}
                   >
                     {statuses.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
+                  <AIHint field="status" />
                 </div>
 
                 {/* Detalles Adicionales */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_area')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['area'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_area')}</label>
                   <input
                     type="text" value={newCommitment.area}
                     onChange={e => setNewCommitment({ ...newCommitment, area: e.target.value })}
                     placeholder={i18n.language === 'en' ? "e.g., North Pit, Dam..." : "Ej: Rajo Norte, Tranque..."}
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('area')}
                   />
+                  <AIHint field="area" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_authority')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['autoridad'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_authority')}</label>
                   <input
                     type="text" value={newCommitment.autoridad}
                     onChange={e => setNewCommitment({ ...newCommitment, autoridad: e.target.value })}
                     placeholder="Ej: SMA, DGA, SEA..."
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('autoridad')}
                   />
+                  <AIHint field="autoridad" />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('commitments.modal_contractor')}</label>
+                <div className="space-y-2 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['contratista'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_contractor')}</label>
                   <input
                     type="text" value={newCommitment.contratista}
                     onChange={e => setNewCommitment({ ...newCommitment, contratista: e.target.value })}
                     placeholder="Ej: ICV, Vecchiola..."
-                    className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white focus:border-primary outline-none"
+                    className={getInputClass('contratista')}
                   />
+                  <AIHint field="contratista" />
                 </div>
-                <div className="flex items-center gap-3 pt-6">
-                  <input
-                    type="checkbox" id="vigencia" checked={newCommitment.vigenciaAcotada}
-                    onChange={e => setNewCommitment({ ...newCommitment, vigenciaAcotada: e.target.checked })}
-                    className="size-5 rounded bg-background-dark border-border-dark text-primary focus:ring-primary"
-                  />
-                  <label htmlFor="vigencia" className="text-xs font-bold text-white uppercase tracking-tight">{t('commitments.modal_restricted')}</label>
+                <div className="flex flex-col gap-1 pt-6 relative">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox" id="vigencia" checked={newCommitment.vigenciaAcotada}
+                      onChange={e => setNewCommitment({ ...newCommitment, vigenciaAcotada: e.target.checked })}
+                      className="size-5 rounded bg-background-dark border-border-dark text-primary focus:ring-primary"
+                    />
+                    <label htmlFor="vigencia" className={`text-xs font-bold uppercase tracking-tight ${inferredFields['vigenciaAcotada'] ? 'text-amber-500' : 'text-white'}`}>{t('commitments.modal_restricted')}</label>
+                  </div>
+                  <AIHint field="vigenciaAcotada" />
                 </div>
               </div>
 

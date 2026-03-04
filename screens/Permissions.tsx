@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, LabelList } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { uploadPermitDocument } from '../services/apiAgent';
 
 // Datos detallados con campos adicionales para soportar los filtros solicitados
 const initialDocs = [
@@ -120,6 +121,68 @@ const Permissions: React.FC = () => {
     vigenciaAcotada: false
   });
 
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [inferredFields, setInferredFields] = useState<Record<string, boolean>>({});
+
+  const handleAutoFill = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsLoadingAI(true);
+    setInferredFields({});
+
+    try {
+      const data = await uploadPermitDocument(file);
+
+      const newFormValues = { ...newPermit };
+      const newInferred: Record<string, boolean> = {};
+
+      const mapField = (apiField: string, stateField: keyof typeof newPermit) => {
+        if (data[apiField]) {
+          if (typeof data[apiField].value === 'boolean' && typeof newFormValues[stateField] === 'boolean') {
+            (newFormValues[stateField] as boolean) = data[apiField].value;
+          } else {
+            (newFormValues[stateField] as any) = data[apiField].value;
+          }
+          newInferred[stateField] = data[apiField].is_inferred;
+        }
+      };
+
+      mapField('nombre_permiso', 'name');
+      mapField('referencia', 'ref');
+      mapField('autoridad', 'authority');
+      mapField('gerencia_responsable', 'gerencia');
+      mapField('responsable', 'responsible');
+      mapField('fecha_vencimiento', 'deadline');
+      mapField('estado', 'status');
+      mapField('tipo', 'tipo');
+      mapField('empresa_contratista', 'contractor');
+      mapField('vigencia_acotada', 'vigenciaAcotada');
+
+      setNewPermit(newFormValues);
+      setInferredFields(newInferred);
+
+    } catch (error) {
+      alert("Error al procesar el documento con IA.");
+    } finally {
+      setIsLoadingAI(false);
+      event.target.value = '';
+    }
+  };
+
+  const getInputClass = (fieldName: string) => {
+    const baseClass = "bg-[#0f172a] border text-white rounded-lg px-4 h-11 text-xs outline-none transition-all w-full ";
+    if (inferredFields[fieldName]) {
+      return baseClass + "border-amber-400 focus:ring-2 focus:ring-amber-500/50 shadow-[0_0_8px_rgba(251,191,36,0.3)]";
+    }
+    return baseClass + "border-[#334155] focus:ring-2 focus:ring-primary/50";
+  };
+
+  const AIHint = ({ field }: { field: string }) => {
+    if (!inferredFields[field]) return null;
+    return <span className="text-amber-500 text-[10px] font-bold mt-1 flex items-center gap-1">✨ Sugerencia de la IA</span>;
+  };
+
   const handleSavePermit = () => {
     if (!newPermit.name || !newPermit.responsible) {
       alert("Por favor complete los campos obligatorios (Nombre y Responsable)");
@@ -156,6 +219,7 @@ const Permissions: React.FC = () => {
       tipo: 'Ambiental',
       vigenciaAcotada: false
     });
+    setInferredFields({});
   };
 
   // Sync activeCategory if language changes and the name doesn't match translated version
@@ -595,49 +659,91 @@ const Permissions: React.FC = () => {
 
             <div className="p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* ASISTENTE IA UPLOAD */}
+                <div className="md:col-span-2 pb-4 border-b border-[#334155]">
+                  <div className="flex items-center gap-4 bg-primary/10 p-4 rounded-xl border border-primary/20">
+                    <div className="flex-1">
+                      <h4 className="text-white text-sm font-bold flex items-center gap-2">
+                        <span className="text-amber-400">✨</span> Asistente IA
+                      </h4>
+                      <p className="text-[#94a3b8] text-xs mt-1">Sube una RCA, Resolución o EIA para auto-completar este formulario.</p>
+                    </div>
+                    <div>
+                      <input
+                        type="file"
+                        id="ai-upload-permit"
+                        className="hidden"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleAutoFill}
+                        disabled={isLoadingAI}
+                      />
+                      <label
+                        htmlFor="ai-upload-permit"
+                        className={`cursor-pointer px-4 py-2.5 rounded-lg font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2 border ${isLoadingAI ? 'bg-[#0f172a] text-slate-400 border-[#334155]' : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border-amber-500/30 shadow-lg shadow-amber-500/10'} `}
+                      >
+                        {isLoadingAI ? (
+                          <>
+                            <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                            Analizando...
+                          </>
+                        ) : (
+                          <>
+                            <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                            Auto-completar
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
                 {/* ID y NOMBRE */}
                 <div className="space-y-4 md:col-span-2">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_name')}</label>
+                  <div className="flex flex-col gap-1.5 relative">
+                    <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['name'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('permissions.label_name')}</label>
                     <input
                       type="text"
                       value={newPermit.name}
                       onChange={(e) => setNewPermit({ ...newPermit, name: e.target.value })}
                       placeholder={i18n.language === 'en' ? "e.g., Phase I Air Quality Monitoring" : "Ej: Monitoreo de Calidad de Aire Fase I"}
-                      className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                      className={getInputClass('name')}
                     />
+                    <AIHint field="name" />
                   </div>
                 </div>
 
                 {/* REFERENCIA y ESTADO */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_ref')}</label>
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['ref'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('permissions.label_ref')}</label>
                   <input
                     type="text"
                     value={newPermit.ref}
                     onChange={(e) => setNewPermit({ ...newPermit, ref: e.target.value })}
                     placeholder="Ej: RCA 245/2018"
-                    className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                    className={getInputClass('ref')}
                   />
+                  <AIHint field="ref" />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_status')}</label>
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['status'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('permissions.label_status')}</label>
                   <select
                     value={newPermit.status}
                     onChange={(e) => setNewPermit({ ...newPermit, status: e.target.value })}
-                    className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                    className={getInputClass('status')}
                   >
                     {Object.keys(COLORS).map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
+                  <AIHint field="status" />
                 </div>
 
                 {/* AUTORIDAD y CONTRATISTA */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_authority')}</label>
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['authority'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('permissions.label_authority')}</label>
                   <select
                     value={newPermit.authority}
                     onChange={(e) => setNewPermit({ ...newPermit, authority: e.target.value })}
-                    className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                    className={getInputClass('authority')}
                   >
                     <option>SEREMI SALUD</option>
                     <option>SERNAGEOMIN</option>
@@ -647,37 +753,40 @@ const Permissions: React.FC = () => {
                     <option>BBNN</option>
                     <option>SEA</option>
                   </select>
+                  <AIHint field="authority" />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_contractor')}</label>
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['contractor'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('permissions.label_contractor')}</label>
                   <input
                     type="text"
                     value={newPermit.contractor}
                     onChange={(e) => setNewPermit({ ...newPermit, contractor: e.target.value })}
                     placeholder="Ej: GESTIONA, SRK, ICV"
-                    className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                    className={getInputClass('contractor')}
                   />
+                  <AIHint field="contractor" />
                 </div>
 
                 {/* GERENCIA y TIPO */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('common.management')}</label>
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['gerencia'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('common.management')}</label>
                   <select
                     value={newPermit.gerencia}
                     onChange={(e) => setNewPermit({ ...newPermit, gerencia: e.target.value })}
-                    className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                    className={getInputClass('gerencia')}
                   >
                     <option value="Mina">{t('dashboard.gerencias.Mina')}</option>
                     <option value="Planta de Procesos">{t('dashboard.gerencias.Planta de Procesos')}</option>
                     <option value="Servicios Generales">{t('dashboard.gerencias.Servicios Generales')}</option>
                   </select>
+                  <AIHint field="gerencia" />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_type')}</label>
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['tipo'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('permissions.label_type')}</label>
                   <select
                     value={newPermit.tipo}
                     onChange={(e) => setNewPermit({ ...newPermit, tipo: e.target.value })}
-                    className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                    className={getInputClass('tipo')}
                   >
                     <option value="Ambiental">{i18n.language === 'en' ? 'Environmental' : 'Ambiental'}</option>
                     <option value="Biodiversidad">{i18n.language === 'en' ? 'Biodiversity' : 'Biodiversidad'}</option>
@@ -690,49 +799,54 @@ const Permissions: React.FC = () => {
                     <option value="Seguridad">{i18n.language === 'en' ? 'Security' : 'Seguridad'}</option>
                     <option value="Vial">{i18n.language === 'en' ? 'Road' : 'Vial'}</option>
                   </select>
+                  <AIHint field="tipo" />
                 </div>
 
                 {/* RESPONSABLE y PERIODO */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_responsible')}</label>
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['responsible'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('permissions.label_responsible')}</label>
                   <input
                     type="text"
                     value={newPermit.responsible}
                     onChange={(e) => setNewPermit({ ...newPermit, responsible: e.target.value })}
                     placeholder={i18n.language === 'en' ? "Full Name" : "Nombre Completo"}
-                    className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                    className={getInputClass('responsible')}
                   />
+                  <AIHint field="responsible" />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_periodo')}</label>
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['period'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('permissions.label_periodo')}</label>
                   <select
                     value={newPermit.period}
                     onChange={(e) => setNewPermit({ ...newPermit, period: e.target.value })}
-                    className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                    className={getInputClass('period')}
                   >
                     <option>2024</option>
                     <option>2025</option>
                     <option>2026</option>
                   </select>
+                  <AIHint field="period" />
                 </div>
 
                 {/* VENCIMIENTO y VIGENCIA ACOTADA */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.table_deadline')}</label>
+                <div className="flex flex-col gap-1.5 relative">
+                  <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['deadline'] ? "text-amber-500" : "text-[#94a3b8]")}>{t('permissions.table_deadline')}</label>
                   <input
                     type="text"
                     value={newPermit.deadline}
                     onChange={(e) => setNewPermit({ ...newPermit, deadline: e.target.value })}
                     placeholder={i18n.language === 'en' ? "e.g., 15 Dec 2024" : "Ej: 15 Dic 2024"}
-                    className="bg-[#0f172a] border border-[#334155] text-white rounded-lg px-4 h-11 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                    className={getInputClass('deadline')}
                   />
+                  <AIHint field="deadline" />
                 </div>
-                <div className="flex items-center gap-4 pt-6">
+                <div className="flex items-center gap-4 pt-6 relative">
                   <button
                     onClick={() => setNewPermit({ ...newPermit, vigenciaAcotada: !newPermit.vigenciaAcotada })}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all text-[10px] font-black uppercase tracking-widest ${newPermit.vigenciaAcotada
-                      ? 'bg-primary/20 border-primary text-primary'
-                      : 'bg-transparent border-[#334155] text-slate-500'
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all text-[10px] font-black uppercase tracking-widest ${inferredFields['vigenciaAcotada'] ? 'border-amber-400 bg-amber-500/10 text-amber-500 shadow-[0_0_8px_rgba(251,191,36,0.3)]' :
+                        newPermit.vigenciaAcotada
+                          ? 'bg-primary/20 border-primary text-primary'
+                          : 'bg-transparent border-[#334155] text-slate-500'
                       }`}
                   >
                     <span className="material-symbols-outlined text-sm">
@@ -741,6 +855,7 @@ const Permissions: React.FC = () => {
                     {t('permissions.label_restricted')}
                   </button>
                   <p className="text-[9px] text-[#64748b] leading-tight flex-1 italic">{t('permissions.restricted_desc')}</p>
+                  <div className="absolute top-1 left-2"><AIHint field="vigenciaAcotada" /></div>
                 </div>
               </div>
 
