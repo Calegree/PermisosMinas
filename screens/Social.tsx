@@ -136,47 +136,59 @@ const Social: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, i) => (
-            <div key={i} className="bg-surface-dark border border-border-dark p-5 rounded-xl">
-              <p className="text-text-secondary text-xs font-medium uppercase tracking-wider mb-1">{stat.label}</p>
-              <h3 className="text-3xl font-bold text-white">{stat.val}</h3>
+            <div key={i} className="bg-surface-dark border border-border-dark p-5 rounded-xl shadow-sm">
+              <p className="text-text-secondary text-[10px] font-bold uppercase tracking-widest">{stat.label}</p>
+              <div className="flex items-end gap-2 mt-1">
+                <p className="text-white text-2xl font-black">{stat.val}</p>
+              </div>
             </div>
           ))}
         </div>
 
-        <div className="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-xl">
-          <div className="p-6 border-b border-border-dark">
-            <h3 className="text-white font-bold text-lg uppercase tracking-tight">{t('social.table_title')}</h3>
+        <div className="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-2xl">
+          <div className="p-4 border-b border-border-dark bg-surface-dark-lighter flex justify-between items-center">
+            <h3 className="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-lg">list_alt</span>
+              {t('social.table_title')}
+            </h3>
           </div>
-          <table className="w-full text-left text-sm text-white">
-            <thead className="bg-surface-dark-lighter">
-              <tr className="text-text-secondary border-b border-border-dark font-bold uppercase text-[10px] tracking-widest">
-                <th className="p-4">{t('social.table_community')}</th>
-                <th className="p-4">{t('social.table_type')}</th>
-                <th className="p-4">Compromiso</th>
-                <th className="p-4">Responsables</th>
-                <th className="p-4">{t('social.table_deadline')}</th>
-                <th className="p-4">{t('social.table_status')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-dark">
-              {socialCommitments.map((sc, i) => (
-                <tr key={i} className="hover:bg-white/5 transition-colors cursor-pointer group" onClick={() => navigate(`/social/SOC-${String(i + 1).padStart(3, '0')}`)}>
-                  <td className="p-4 font-bold max-w-[150px] truncate">{sc.community}</td>
-                  <td className="p-4 text-slate-300 max-w-[120px] truncate">{sc.type}</td>
-                  <td className="p-4 text-slate-300 max-w-[300px] truncate" title={sc.description}>{sc.description || '-'}</td>
-                  <td className="p-4 text-slate-300 max-w-[200px] truncate" title={sc.responsible}>{sc.responsible || '-'}</td>
-                  <td className="p-4 text-slate-300 whitespace-nowrap">{sc.date}</td>
-                  <td className="p-4 whitespace-nowrap">
-                    <span className={`font-bold ${sc.status === t('social.status_risk') ? 'text-red-400' :
-                      sc.status === t('social.status_ontime') ? 'text-emerald-400' : 'text-slate-400'
-                      }`}>
-                      {sc.status}
-                    </span>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-background-dark/50 border-b border-border-dark text-[10px] font-bold text-text-secondary uppercase tracking-widest">
+                  <th className="p-4">{t('social.table_community')}</th>
+                  <th className="p-4">{t('social.table_type')}</th>
+                  <th className="p-4">Compromiso</th>
+                  <th className="p-4">Responsables</th>
+                  <th className="p-4">{t('social.table_deadline')}</th>
+                  <th className="p-4">{t('social.table_status')}</th>
+                  <th className="p-4 text-right">Ficha</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border-dark">
+                {socialCommitments.map((sc, i) => (
+                  <tr key={i} className="hover:bg-white/5 transition-colors cursor-pointer group" onClick={() => navigate(`/social/SOC-${String(i + 1).padStart(3, '0')}`)}>
+                    <td className="p-4 font-bold max-w-[150px] truncate">{sc.community}</td>
+                    <td className="p-4 text-slate-300 max-w-[120px] truncate">{sc.type}</td>
+                    <td className="p-4 text-slate-300 max-w-[300px] truncate" title={sc.description}>{sc.description || '-'}</td>
+                    <td className="p-4 text-slate-300 max-w-[200px] truncate" title={sc.responsible}>{sc.responsible || '-'}</td>
+                    <td className="p-4 text-slate-300 whitespace-nowrap">{sc.date}</td>
+                    <td className="p-4 whitespace-nowrap">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${sc.status === t('social.status_ontime') ? 'bg-green-500/10 text-emerald-400 border-green-500/20' :
+                        sc.status === t('social.status_risk') ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                          'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                        }`}>
+                        {sc.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <span className="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors">arrow_forward_ios</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

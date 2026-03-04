@@ -357,26 +357,26 @@ const Permissions: React.FC = () => {
   }, [dataFiltradaGlobal, statusFilter]);
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#0f172a] pb-12">
-      <header className="px-8 py-6 bg-[#0f172a] border-b border-[#1e293b]">
+    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-background-dark pb-12">
+      <header className="px-8 py-6 pb-2">
         <div className="flex flex-col gap-6">
-          <nav className="flex items-center text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          <nav className="flex gap-2 items-center text-sm font-black text-text-secondary uppercase tracking-widest">
             <Link to="/" className="hover:text-primary transition-colors">{t('dashboard.breadcrumb_start')}</Link>
-            <span className="mx-2 text-slate-700">/</span>
+            <span className="text-text-secondary">/</span>
             <span className="text-white">{t('permissions.breadcrumb_permits')}</span>
           </nav>
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
             <div className="space-y-1">
               <h1 className="text-white text-3xl md:text-4xl font-black uppercase tracking-tight">{t('permissions.title')}</h1>
-              <p className="text-[#64748b] text-sm italic">{t('permissions.subtitle')}</p>
+              <p className="text-text-secondary text-sm italic">{t('permissions.subtitle')}</p>
             </div>
             <div className="flex flex-wrap items-end gap-3 w-full lg:w-auto">
               <div className="flex flex-col gap-1 min-w-[140px]">
-                <label className="text-[9px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_gerencia')}</label>
+                <label className="text-[9px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('permissions.label_gerencia')}</label>
                 <select
                   value={globalGerencia}
                   onChange={(e) => setGlobalGerencia(e.target.value)}
-                  className="bg-[#1e293b] border border-[#334155] text-white rounded px-3 h-10 text-xs focus:ring-1 focus:ring-primary outline-none shadow-inner"
+                  className="bg-surface-dark border border-border-dark text-white rounded-lg px-3 py-1.5 text-xs focus:ring-primary focus:border-primary outline-none transition-all h-10 shadow-sm"
                 >
                   <option value="Todas">{t('dashboard.gerencias.Todas')}</option>
                   <option value="Mina">{t('dashboard.gerencias.Mina')}</option>
@@ -385,11 +385,11 @@ const Permissions: React.FC = () => {
                 </select>
               </div>
               <div className="flex flex-col gap-1 min-w-[100px]">
-                <label className="text-[9px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.label_periodo')}</label>
+                <label className="text-[9px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('permissions.label_periodo')}</label>
                 <select
                   value={globalPeriodo}
                   onChange={(e) => setGlobalPeriodo(e.target.value)}
-                  className="bg-[#1e293b] border border-[#334155] text-white rounded px-3 h-10 text-xs focus:ring-1 focus:ring-primary outline-none shadow-inner"
+                  className="bg-surface-dark border border-border-dark text-white rounded-lg px-3 py-1.5 text-xs focus:ring-primary focus:border-primary outline-none transition-all h-10 shadow-sm"
                 >
                   <option value="Todos">{t('dashboard.gerencias.Todas')}</option>
                   <option value="2024">2024</option>
@@ -411,28 +411,30 @@ const Permissions: React.FC = () => {
       <div className="px-8 grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
         {[
           { label: t('permissions.kpi_total'), val: stats.total, color: "text-white" },
-          { label: t('permissions.kpi_approved'), val: stats.aprobados, color: "text-emerald-500" },
+          { label: t('permissions.kpi_approved'), val: stats.aprobados, color: "text-green-500" },
           { label: t('permissions.kpi_in_progress'), val: stats.enTramite, color: "text-blue-500" },
-          { label: t('permissions.kpi_critical'), val: stats.criticos, color: "text-red-500" }
+          { label: t('permissions.kpi_critical'), val: stats.criticos, color: "text-yellow-500" }
         ].map((kpi, i) => (
-          <div key={i} className="bg-[#1e293b]/40 border border-[#334155] rounded-xl p-8 hover:border-primary/50 transition-all shadow-sm group">
-            <p className="text-[#94a3b8] text-[10px] font-black uppercase tracking-widest mb-4 group-hover:text-primary transition-colors">{kpi.label}</p>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-4xl font-black ${kpi.color}`}>{kpi.val}</span>
-              <span className="text-[#64748b] text-[11px] font-bold uppercase tracking-tighter">{t('permissions.units')}</span>
+          <div key={i} className="bg-surface-dark border border-border-dark p-5 rounded-xl shadow-sm">
+            <p className="text-text-secondary text-[10px] font-bold uppercase tracking-widest mb-1">{kpi.label}</p>
+            <div className="flex items-end gap-2 mt-1">
+              <span className={`text-2xl font-black ${kpi.color}`}>{kpi.val}</span>
+              <span className="text-[10px] text-text-secondary mb-1">{t('permissions.units')}</span>
             </div>
           </div>
         ))}
       </div>
 
       <div className="px-8 mt-10 space-y-8">
-        <div className="bg-[#1e293b] p-1 rounded border border-[#334155] overflow-x-auto shadow-2xl">
-          <div className="flex gap-1 min-w-max">
+        <div className="bg-surface-dark border border-border-dark rounded-xl p-2 shadow-lg">
+          <div className="flex flex-wrap gap-1">
             {categories.map((cat, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-5 py-3 text-[10px] font-black uppercase tracking-tight transition-all rounded ${activeCategory === cat ? 'bg-primary text-white shadow-xl' : 'text-[#94a3b8] hover:bg-white/5'
+                className={`px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${activeCategory === cat
+                  ? 'bg-primary text-white border-primary shadow-lg shadow-blue-500/20'
+                  : 'bg-transparent text-text-secondary border-transparent hover:bg-white/5 hover:text-white'
                   }`}
               >
                 {cat}
@@ -442,9 +444,9 @@ const Permissions: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div className="bg-[#1e293b] p-8 rounded border border-[#334155] h-[400px] flex flex-col shadow-lg">
-            <h3 className="text-white text-[10px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-sm icon-fill">donut_large</span>
+          <div className="bg-surface-dark border border-border-dark p-6 rounded-xl shadow-lg h-[380px] flex flex-col">
+            <h3 className="text-white text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-lg icon-fill">donut_large</span>
               {t('permissions.chart_status')}
             </h3>
             <div className="flex-1">
@@ -470,9 +472,9 @@ const Permissions: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-[#1e293b] p-8 rounded border border-[#334155] h-[400px] flex flex-col shadow-lg">
-            <h3 className="text-white text-[10px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-sm">balance</span>
+          <div className="bg-surface-dark border border-border-dark p-6 rounded-xl shadow-lg h-[380px] flex flex-col">
+            <h3 className="text-white text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-lg">balance</span>
               {t('permissions.chart_authority')}
             </h3>
             <div className="flex-1">
@@ -493,9 +495,9 @@ const Permissions: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-[#1e293b] p-8 rounded border border-[#334155] h-[400px] flex flex-col shadow-lg">
-            <h3 className="text-white text-[10px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-sm">stacked_bar_chart</span>
+          <div className="bg-surface-dark border border-border-dark p-6 rounded-xl shadow-lg h-[380px] flex flex-col">
+            <h3 className="text-white text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-lg">stacked_bar_chart</span>
               {t('permissions.chart_management')}
             </h3>
             <div className="flex-1">
@@ -517,9 +519,9 @@ const Permissions: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-[#1e293b] p-8 rounded border border-[#334155] h-[400px] flex flex-col shadow-lg">
-            <h3 className="text-white text-[10px] font-black uppercase tracking-widest mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-sm">engineering</span>
+          <div className="bg-surface-dark border border-border-dark p-6 rounded-xl shadow-lg h-[380px] flex flex-col">
+            <h3 className="text-white text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-lg">engineering</span>
               {t('permissions.chart_contractor')}
             </h3>
             <div className="flex-1">
@@ -541,77 +543,76 @@ const Permissions: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#1e293b] border border-[#334155] rounded shadow-2xl overflow-hidden">
-          <div className="p-8 bg-[#334155]/10 border-b border-[#334155] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="flex items-center gap-4">
-              <div className="size-10 rounded bg-primary/20 flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined icon-fill">table_rows</span>
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-white text-base font-black uppercase tracking-widest">{t('permissions.table_title')}</h3>
-                <p className="text-[#94a3b8] text-[9px] font-black uppercase tracking-[0.2em]">{activeCategory}</p>
-              </div>
+        {/* Filtro de Estatus bajo los gráficos */}
+        <div className="bg-surface-dark border border-border-dark p-4 rounded-xl shadow-lg flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-[9px] font-black text-text-secondary uppercase tracking-widest ml-1">{t('permissions.table_filter_status')}</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-background-dark border border-border-dark text-white rounded-lg px-3 py-1.5 text-xs focus:ring-primary outline-none min-w-[150px] h-10 shadow-sm"
+              >
+                <option value={t('permissions.all_status')}>{t('permissions.all_status')}</option>
+                {Object.keys(COLORS).map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
             </div>
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-[#94a3b8] uppercase tracking-widest ml-1">{t('permissions.table_filter_status')}</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-[#0f172a] border border-[#334155] text-white rounded px-4 h-10 text-xs focus:ring-1 focus:ring-primary outline-none min-w-[200px]"
-                >
-                  <option value={t('permissions.all_status')}>{t('permissions.all_status')}</option>
-                  {Object.keys(COLORS).map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div className="text-right border-l border-[#334155] pl-6">
-                <p className="text-[#94a3b8] text-[9px] font-black uppercase tracking-widest">{t('permissions.table_records')}</p>
-                <p className="text-white text-3xl font-black">{docsForTable.length}</p>
-              </div>
-            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-text-secondary text-[10px] font-black uppercase tracking-widest">{t('permissions.table_records')}</span>
+            <span className="text-white text-lg font-black">{docsForTable.length}</span>
+          </div>
+        </div>
+
+        <div className="bg-surface-dark border border-border-dark rounded-xl overflow-hidden shadow-2xl">
+          <div className="p-4 border-b border-border-dark bg-surface-dark-lighter flex justify-between items-center">
+            <h3 className="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-lg">list_alt</span>
+              {t('common.actions')}: {activeCategory}
+            </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-[#0f172a] border-b border-[#334155] text-[10px] font-black text-[#94a3b8] uppercase tracking-widest">
-                  <th className="p-5">{t('permissions.table_id')}</th>
-                  <th className="p-5">{t('permissions.table_desc')}</th>
-                  <th className="p-5">{t('permissions.table_responsible')}</th>
-                  <th className="p-5">{t('permissions.table_period')}</th>
-                  <th className="p-5">{t('permissions.table_deadline')}</th>
-                  <th className="p-5">{t('permissions.table_status')}</th>
-                  <th className="p-5 text-right font-black">{t('permissions.table_sheet')}</th>
+                <tr className="bg-background-dark/50 border-b border-border-dark text-[10px] font-bold text-text-secondary uppercase tracking-widest">
+                  <th className="p-4">{t('permissions.table_id')}</th>
+                  <th className="p-4">{t('permissions.table_desc')}</th>
+                  <th className="p-4">{t('permissions.table_responsible')}</th>
+                  <th className="p-4">{t('permissions.table_period')}</th>
+                  <th className="p-4">{t('permissions.table_deadline')}</th>
+                  <th className="p-4">{t('permissions.table_status')}</th>
+                  <th className="p-4 text-right font-black">{t('permissions.table_sheet')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#334155]">
+              <tbody className="divide-y divide-border-dark">
                 {docsForTable.length > 0 ? docsForTable.map((doc) => (
                   <tr
                     key={doc.id}
                     className="hover:bg-white/5 transition-all group cursor-pointer"
                     onClick={() => navigate(`/permisos/${doc.id}`)}
                   >
-                    <td className="p-5 text-white text-[11px] font-black">{doc.id}</td>
-                    <td className="p-5">
+                    <td className="p-4 text-white text-[11px] font-black">{doc.id}</td>
+                    <td className="p-4">
                       <div className="flex flex-col">
                         <span className="text-white text-[13px] font-bold group-hover:text-primary transition-colors">{doc.name}</span>
-                        <span className="text-[#64748b] text-[9px] font-black uppercase mt-1 tracking-tight">{doc.ref}</span>
+                        <span className="text-text-secondary text-[9px] font-black uppercase mt-1 tracking-tight">{doc.ref}</span>
                       </div>
                     </td>
-                    <td className="p-5">
+                    <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="size-8 rounded-full bg-[#1e293b] border border-[#334155] flex items-center justify-center text-[10px] text-primary font-black uppercase">
+                        <div className="size-8 rounded-full bg-surface-dark border border-border-dark flex items-center justify-center text-[10px] text-primary font-black uppercase">
                           {doc.initials}
                         </div>
                         <span className="text-slate-300 text-[11px] font-bold">{doc.responsible}</span>
                       </div>
                     </td>
-                    <td className="p-5">
-                      <span className="bg-[#0f172a] border border-[#334155] px-3 py-1.5 rounded text-[10px] text-slate-400 font-black uppercase">
+                    <td className="p-4">
+                      <span className="bg-background-dark border border-border-dark px-3 py-1.5 rounded text-[10px] text-slate-400 font-black uppercase">
                         {doc.period}
                       </span>
                     </td>
-                    <td className="p-5 text-slate-300 text-[11px] font-medium">{doc.deadline}</td>
-                    <td className="p-5">
+                    <td className="p-4 text-slate-300 text-[11px] font-medium">{doc.deadline}</td>
+                    <td className="p-4">
                       <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase border shadow-sm ${doc.status === 'APROBADO' || doc.status === 'VALIDADO' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' :
                         doc.status === 'RECHAZADO' || doc.status === 'NO INICIADO' ? 'bg-red-500/10 text-red-500 border-red-500/30' :
                           'bg-blue-500/10 text-blue-400 border-blue-500/30'
@@ -619,8 +620,8 @@ const Permissions: React.FC = () => {
                         {doc.status}
                       </span>
                     </td>
-                    <td className="p-5 text-right">
-                      <span className="material-symbols-outlined text-[#334155] group-hover:text-white transition-all text-xl">arrow_right_alt</span>
+                    <td className="p-4 text-right">
+                      <span className="material-symbols-outlined text-text-secondary group-hover:text-primary transition-colors text-xl">arrow_right_alt</span>
                     </td>
                   </tr>
                 )) : (
