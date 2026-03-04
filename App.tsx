@@ -10,6 +10,7 @@ import CommitmentDetail from './screens/CommitmentDetail';
 import Permissions from './screens/Permissions';
 import Sustainability from './screens/Sustainability';
 import Social from './screens/Social';
+import SocialDetail from './screens/SocialDetail';
 import Calendar from './screens/Calendar';
 import Reports from './screens/Reports';
 import PredictiveAnalysis from './screens/PredictiveAnalysis';
@@ -59,6 +60,7 @@ const App: React.FC = () => {
             <Route path="/permisos/:id" element={<PermissionDetail />} />
             <Route path="/sostenibilidad" element={<Sustainability />} />
             <Route path="/social" element={<Social />} />
+            <Route path="/social/:id" element={<SocialDetail />} />
             <Route path="/calendario" element={<Calendar />} />
             <Route path="/reportes" element={<Reports />} />
             <Route path="/analisis-predictivo" element={<PredictiveAnalysis />} />

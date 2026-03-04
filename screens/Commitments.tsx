@@ -589,7 +589,7 @@ const Commitments: React.FC = () => {
                 {t('commitments.modal_title')}
               </h3>
               <button type="button" onClick={() => setIsModalOpen(false)} className="text-text-secondary hover:text-white transition-colors">
-                <span className="material-symbols-outlined">{t('common.cancel')}</span>
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
             <div className="p-8 pb-4">
@@ -720,9 +720,8 @@ const Commitments: React.FC = () => {
                 <div className="space-y-2 relative">
                   <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['deadline'] ? "text-amber-500" : "text-text-secondary")}>{t('commitments.modal_deadline')}</label>
                   <input
-                    type="text" value={newCommitment.deadline}
+                    type="date" value={newCommitment.deadline}
                     onChange={e => setNewCommitment({ ...newCommitment, deadline: e.target.value })}
-                    placeholder={i18n.language === 'en' ? "e.g., 15 Oct 2024" : "Ej: 15 Oct 2024"}
                     className={getInputClass('deadline')}
                   />
                   <AIHint field="deadline" />

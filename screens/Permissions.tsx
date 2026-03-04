@@ -654,7 +654,7 @@ const Permissions: React.FC = () => {
                 onClick={() => setIsModalOpen(false)}
                 className="text-slate-500 hover:text-white transition-colors"
               >
-                <span className="material-symbols-outlined text-3xl">{t('common.cancel')}</span>
+                <span className="material-symbols-outlined text-3xl">close</span>
               </button>
             </div>
 

@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 const PermissionDetail: React.FC = () => {
     const { id } = useParams();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     // En una app real, aquí buscaríamos los datos por id. Por ahora simulamos.
     const mockData = {
@@ -67,7 +68,10 @@ const PermissionDetail: React.FC = () => {
                         </h1>
                         <p className="text-[#64748b] text-lg italic">{mockData.ref}</p>
                     </div>
-                    <button className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-white hover:bg-primary-hover transition-all font-black text-[11px] uppercase tracking-widest shadow-lg shadow-blue-500/20">
+                    <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-white hover:bg-primary-hover transition-all font-black text-[11px] uppercase tracking-widest shadow-lg shadow-blue-500/20"
+                    >
                         <span className="material-symbols-outlined text-lg font-black">edit</span>
                         Editar Ficha
                     </button>
@@ -155,6 +159,53 @@ const PermissionDetail: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0f172a]/80 backdrop-blur-sm">
+                    <div className="bg-[#1e293b] border border-[#334155] rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                        <div className="p-6 border-b border-[#334155] flex justify-between items-center bg-[#0f172a]/50">
+                            <h3 className="text-white font-black uppercase tracking-widest flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary">edit</span>
+                                Editar Ficha
+                            </h3>
+                            <button onClick={() => setIsEditModalOpen(false)} className="text-[#64748b] hover:text-white transition-colors">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Nombre del Permiso</label>
+                                    <input type="text" className="w-full bg-[#0f172a] border border-[#334155] rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-primary" defaultValue={mockData.name} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Estado Gestión</label>
+                                    <select className="w-full bg-[#0f172a] border border-[#334155] rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-primary" defaultValue={mockData.status}>
+                                        <option>APROBADO</option>
+                                        <option>PENDIENTE</option>
+                                        <option>EN TRÁMITE</option>
+                                        <option>RECHAZADO</option>
+                                    </select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Responsable</label>
+                                        <input type="text" className="w-full bg-[#0f172a] border border-[#334155] rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-primary" defaultValue={mockData.responsible} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Vencimiento</label>
+                                        <input type="date" className="w-full bg-[#0f172a] border border-[#334155] rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-primary" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="pt-6 border-t border-[#334155] flex justify-end gap-4">
+                                <button onClick={() => setIsEditModalOpen(false)} className="px-6 py-2.5 rounded-lg border border-[#334155] text-[#94a3b8] text-[11px] font-black uppercase tracking-widest hover:bg-white/5 transition-all">Cancelar</button>
+                                <button onClick={() => setIsEditModalOpen(false)} className="px-8 py-2.5 rounded-lg bg-primary text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-primary-hover transition-all">Guardar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
 const CommitmentDetail: React.FC = () => {
   const { id } = useParams();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto">
@@ -25,7 +26,10 @@ const CommitmentDetail: React.FC = () => {
             </h1>
             <p className="text-text-secondary text-lg">RCA 254 - Proyecto Expansión Fase II</p>
           </div>
-          <button className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-white hover:bg-blue-600 transition-all font-bold text-sm shadow-lg shadow-blue-500/20">
+          <button
+            onClick={() => setIsEditModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-white hover:bg-blue-600 transition-all font-bold text-sm shadow-lg shadow-blue-500/20"
+          >
             <span className="material-symbols-outlined text-lg">edit</span>
             Editar Compromiso
           </button>
@@ -83,6 +87,54 @@ const CommitmentDetail: React.FC = () => {
           </div>
         </div>
       </div>
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background-dark/80 backdrop-blur-sm">
+          <div className="bg-surface-dark border border-border-dark rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="p-6 border-b border-border-dark flex justify-between items-center bg-surface-dark-lighter">
+              <h3 className="text-white font-black uppercase tracking-widest flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">edit</span>
+                Editar Compromiso
+              </h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-text-secondary hover:text-white transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary">Fecha Límite</label>
+                  <input type="date" className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-primary" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary">Estado Actual</label>
+                  <select className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-primary">
+                    <option>En Curso</option>
+                    <option>Validado</option>
+                    <option>Pendiente</option>
+                    <option>Atrasado</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary">Nivel de Riesgo</label>
+                  <select className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-primary">
+                    <option>Alto</option>
+                    <option>Medio</option>
+                    <option>Bajo</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-text-secondary">Descripción</label>
+                  <textarea className="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-primary min-h-[100px]" defaultValue={`"La empresa deberá implementar medidas de humectación..."`} />
+                </div>
+              </div>
+              <div className="pt-6 border-t border-border-dark flex justify-end gap-4">
+                <button onClick={() => setIsEditModalOpen(false)} className="px-6 py-2.5 rounded-lg border border-border-dark text-text-secondary text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all">Cancelar</button>
+                <button onClick={() => setIsEditModalOpen(false)} className="px-8 py-2.5 rounded-lg bg-primary text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all">Guardar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

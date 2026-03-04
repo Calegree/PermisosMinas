@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { uploadSocialDocument } from '../services/apiAgent';
 
 interface SocialCommitment {
@@ -13,6 +14,7 @@ interface SocialCommitment {
 
 const Social: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
   const [socialCommitments, setSocialCommitments] = useState<SocialCommitment[]>(() => [
     { community: 'Comunidad Colla', type: 'Infraestructura', status: t('social.status_risk'), date: `Oct 2024` },
@@ -158,7 +160,7 @@ const Social: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-border-dark">
               {socialCommitments.map((sc, i) => (
-                <tr key={i} className="hover:bg-white/5 transition-colors">
+                <tr key={i} className="hover:bg-white/5 transition-colors cursor-pointer group" onClick={() => navigate(`/social/SOC-${String(i + 1).padStart(3, '0')}`)}>
                   <td className="p-4 font-bold max-w-[150px] truncate">{sc.community}</td>
                   <td className="p-4 text-slate-300 max-w-[120px] truncate">{sc.type}</td>
                   <td className="p-4 text-slate-300 max-w-[300px] truncate" title={sc.description}>{sc.description || '-'}</td>
@@ -187,7 +189,7 @@ const Social: React.FC = () => {
                 {i18n.language === 'en' ? 'New Social Commitment' : 'Nuevo Compromiso Social'}
               </h3>
               <button type="button" onClick={() => setIsModalOpen(false)} className="text-text-secondary hover:text-white transition-colors">
-                <span className="material-symbols-outlined">{t('common.cancel')}</span>
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
@@ -246,9 +248,8 @@ const Social: React.FC = () => {
                 <div className="space-y-2 relative">
                   <label className={"text-[10px] font-black uppercase tracking-widest ml-1 " + (inferredFields['date'] ? "text-amber-500" : "text-text-secondary")}>{t('social.table_deadline')}</label>
                   <input
-                    type="text" value={newSocial.date}
+                    type="date" value={newSocial.date}
                     onChange={e => setNewSocial({ ...newSocial, date: e.target.value })}
-                    placeholder="Ej: Dic 2024"
                     className={getInputClass('date')}
                   />
                   <AIHint field="date" />
