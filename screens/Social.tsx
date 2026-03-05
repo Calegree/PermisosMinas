@@ -170,8 +170,12 @@ const Social: React.FC = () => {
                   <tr key={i} className="hover:bg-white/5 transition-colors cursor-pointer group" onClick={() => navigate(`/social/SOC-${String(i + 1).padStart(3, '0')}`)}>
                     <td className="p-4 font-bold max-w-[150px] truncate">{sc.community}</td>
                     <td className="p-4 text-slate-300 max-w-[120px] truncate">{sc.type}</td>
-                    <td className="p-4 text-slate-300 max-w-[300px] truncate" title={sc.description}>{sc.description || '-'}</td>
-                    <td className="p-4 text-slate-300 max-w-[200px] truncate" title={sc.responsible}>{sc.responsible || '-'}</td>
+                    <td className="p-4 text-slate-300 max-w-[400px]" title={sc.description}>
+                      <div className="line-clamp-2 leading-relaxed">{sc.description || '-'}</div>
+                    </td>
+                    <td className="p-4 text-slate-300 max-w-[250px]" title={sc.responsible}>
+                      <div className="line-clamp-2 leading-relaxed">{sc.responsible || '-'}</div>
+                    </td>
                     <td className="p-4 text-slate-300 whitespace-nowrap">{sc.date}</td>
                     <td className="p-4 whitespace-nowrap">
                       <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${sc.status === t('social.status_ontime') ? 'bg-green-500/10 text-emerald-400 border-green-500/20' :
